@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KG Consol</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="error">Error</string>
+    <string name="back">Atrás</string>
+    <string name="create">Crear</string>
+    <string name="add">Añadir</string>
+
+    <string name="batch_list_title">Partidas</string>
+    <string name="batch_new">Nueva partida</string>
+    <string name="batch_number_label">Número de partida</string>
+    <string name="batch_prefix">KG</string>
+    <string name="batch_no_batches">No hay partidas aún</string>
+    <string name="batch_tap_to_create">Pulse + para crear su primera partida</string>
+    <string name="batch_box_type">Tipo de caja</string>
+    <string name="batch_auto_box">Auto (11111, 22222…)</string>
+    <string name="batch_manual_box">Manual (5 dígitos)</string>
+    <string name="batch_box_number_label">Número de caja (5 dígitos)</string>
+
+    <string name="box_active">CAJA ACTIVA</string>
+    <string name="box_manual">Manual</string>
+    <string name="box_orders_count">%d pedidos</string>
+    <string name="box_scan_order">ESCANEAR PEDIDO</string>
+    <string name="box_orders_title">Pedidos en esta caja</string>
+    <string name="box_no_orders">No hay pedidos escaneados aún</string>
+    <string name="box_complete_print">COMPLETAR CAJA E IMPRIMIR</string>
+    <string name="box_completed">¡Caja completada!</string>
+    <string name="box_printing">Imprimiendo etiquetas…</string>
+
+    <string name="scan_title">Escanear pedido</string>
+    <string name="scan_hint">Apunte la cámara al código de barras</string>
+    <string name="scan_scanned">%d escaneados</string>
+    <string name="scan_manual_label">Pedido (01-2345-6789)</string>
+    <string name="scan_torch">Linterna</string>
+
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_printer">Impresora Zebra</string>
+    <string name="settings_printer_ip">Dirección IP de la impresora</string>
+    <string name="settings_printer_port">Puerto (por defecto: 9100)</string>
+    <string name="settings_test_print">Prueba de impresión</string>
+    <string name="settings_test_success">✓ ¡Prueba enviada correctamente!</string>
+    <string name="settings_display">Pantalla</string>
+    <string name="settings_keep_screen_on">Mantener pantalla encendida</string>
+    <string name="settings_keep_screen_on_desc">Evitar que la pantalla se apague</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_restart">Reinicie la app para aplicar el idioma</string>
+    <string name="settings_about">Acerca de</string>
+
+    <string name="reports_title">Informe</string>
+    <string name="reports_copy">Copiar</string>
+    <string name="reports_share">Compartir</string>
+    <string name="reports_boxes">cajas</string>
+    <string name="reports_orders">pedidos en total</string>
+    <string name="reports_completed">✓ Completada</string>
+    <string name="reports_in_progress">En progreso</string>
+
+    <string name="print_error_title">Error de impresión</string>
+    <string name="print_error_no_ip">La IP de la impresora no está configurada</string>
+    <string name="print_error_connect">No se puede conectar a la impresora. Verifique IP y red.</string>
+    <string name="print_error_timeout">Tiempo de conexión agotado. La impresora no responde.</string>
+
+    <string name="delete_order_title">¿Eliminar pedido?</string>
+    <string name="delete_order_message">¿Quitar %s de esta caja?</string>
+</resources>

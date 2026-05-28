@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KG Consol</string>
+
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Отмена</string>
+    <string name="save">Сохранить</string>
+    <string name="delete">Удалить</string>
+    <string name="error">Ошибка</string>
+    <string name="back">Назад</string>
+    <string name="create">Создать</string>
+    <string name="add">Добавить</string>
+
+    <!-- Batch screen -->
+    <string name="batch_list_title">Партии</string>
+    <string name="batch_new">Новая партия</string>
+    <string name="batch_number_label">Номер партии</string>
+    <string name="batch_prefix">KG</string>
+    <string name="batch_no_batches">Партий пока нет</string>
+    <string name="batch_tap_to_create">Нажмите + для создания первой партии</string>
+    <string name="batch_box_type">Тип коробки</string>
+    <string name="batch_auto_box">Авто (11111, 22222…)</string>
+    <string name="batch_manual_box">Ручной (5 цифр)</string>
+    <string name="batch_box_number_label">Номер коробки (5 цифр)</string>
+
+    <!-- Box screen -->
+    <string name="box_active">ТЕКУЩАЯ КОРОБКА</string>
+    <string name="box_manual">Ручной</string>
+    <string name="box_orders_count">%d заказов</string>
+    <string name="box_scan_order">СКАНИРОВАТЬ ЗАКАЗ</string>
+    <string name="box_orders_title">Заказы в коробке</string>
+    <string name="box_no_orders">Заказы ещё не отсканированы</string>
+    <string name="box_complete_print">ЗАВЕРШИТЬ КОРОБКУ И ПЕЧАТАТЬ</string>
+    <string name="box_completed">Коробка завершена!</string>
+    <string name="box_printing">Печать этикеток…</string>
+
+    <!-- Scan screen -->
+    <string name="scan_title">Сканирование заказа</string>
+    <string name="scan_hint">Наведите камеру на штрих-код</string>
+    <string name="scan_scanned">%d отсканировано</string>
+    <string name="scan_manual_label">Заказ (01-2345-6789)</string>
+    <string name="scan_torch">Фонарик</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_printer">Принтер Zebra</string>
+    <string name="settings_printer_ip">IP-адрес принтера</string>
+    <string name="settings_printer_port">Порт (по умолчанию: 9100)</string>
+    <string name="settings_test_print">Тест печати</string>
+    <string name="settings_test_success">✓ Тест-печать отправлена успешно!</string>
+    <string name="settings_display">Экран</string>
+    <string name="settings_keep_screen_on">Экран постоянно включён</string>
+    <string name="settings_keep_screen_on_desc">Запретить отключение экрана</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_restart">Перезапустите приложение для применения языка</string>
+    <string name="settings_about">О приложении</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Отчёт</string>
+    <string name="reports_copy">Копировать</string>
+    <string name="reports_share">Поделиться</string>
+    <string name="reports_boxes">коробок</string>
+    <string name="reports_orders">заказов всего</string>
+    <string name="reports_completed">✓ Завершена</string>
+    <string name="reports_in_progress">В работе</string>
+
+    <!-- Print errors -->
+    <string name="print_error_title">Ошибка печати</string>
+    <string name="print_error_no_ip">IP-адрес принтера не настроен</string>
+    <string name="print_error_connect">Не удаётся подключиться к принтеру. Проверьте IP и сеть.</string>
+    <string name="print_error_timeout">Время подключения истекло. Принтер не отвечает.</string>
+
+    <!-- Delete dialog -->
+    <string name="delete_order_title">Удалить заказ?</string>
+    <string name="delete_order_message">Убрать %s из этой коробки?</string>
+</resources>

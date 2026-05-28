@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KG Consol</string>
+
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="error">Error</string>
+    <string name="back">Back</string>
+    <string name="create">Create</string>
+    <string name="add">Add</string>
+
+    <!-- Batch screen -->
+    <string name="batch_list_title">Batches</string>
+    <string name="batch_new">New Batch</string>
+    <string name="batch_number_label">Batch number</string>
+    <string name="batch_prefix">KG</string>
+    <string name="batch_no_batches">No batches yet</string>
+    <string name="batch_tap_to_create">Tap + to create your first batch</string>
+    <string name="batch_box_type">Box type</string>
+    <string name="batch_auto_box">Auto (11111, 22222…)</string>
+    <string name="batch_manual_box">Manual (5 digits)</string>
+    <string name="batch_box_number_label">Box number (5 digits)</string>
+
+    <!-- Box screen -->
+    <string name="box_active">ACTIVE BOX</string>
+    <string name="box_manual">Manual</string>
+    <string name="box_orders_count">%d orders</string>
+    <string name="box_scan_order">SCAN ORDER</string>
+    <string name="box_orders_title">Orders in this box</string>
+    <string name="box_no_orders">No orders scanned yet</string>
+    <string name="box_complete_print">COMPLETE BOX &amp; PRINT</string>
+    <string name="box_completed">Box Completed!</string>
+    <string name="box_printing">Printing labels…</string>
+
+    <!-- Scan screen -->
+    <string name="scan_title">Scan Order</string>
+    <string name="scan_hint">Point camera at barcode</string>
+    <string name="scan_scanned">%d scanned</string>
+    <string name="scan_manual_label">Order (01-2345-6789)</string>
+    <string name="scan_torch">Torch</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_printer">Zebra Printer</string>
+    <string name="settings_printer_ip">Printer IP Address</string>
+    <string name="settings_printer_port">Port (default: 9100)</string>
+    <string name="settings_test_print">Test Print</string>
+    <string name="settings_test_success">✓ Test print sent successfully!</string>
+    <string name="settings_display">Display</string>
+    <string name="settings_keep_screen_on">Keep Screen On</string>
+    <string name="settings_keep_screen_on_desc">Prevent screen from sleeping</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_restart">Restart the app to apply language changes</string>
+    <string name="settings_about">About</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Report</string>
+    <string name="reports_copy">Copy</string>
+    <string name="reports_share">Share</string>
+    <string name="reports_boxes">boxes</string>
+    <string name="reports_orders">orders total</string>
+    <string name="reports_completed">✓ Completed</string>
+    <string name="reports_in_progress">In progress</string>
+
+    <!-- Print errors -->
+    <string name="print_error_title">Print Error</string>
+    <string name="print_error_no_ip">Printer IP is not configured</string>
+    <string name="print_error_connect">Cannot connect to printer. Check IP and network.</string>
+    <string name="print_error_timeout">Connection timed out. Printer not responding.</string>
+
+    <!-- Delete dialog -->
+    <string name="delete_order_title">Delete Order?</string>
+    <string name="delete_order_message">Remove %s from this box?</string>
+</resources>
