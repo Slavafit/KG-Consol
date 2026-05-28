@@ -28,7 +28,8 @@ data class AppSettings(
     val printerIp: String = "192.168.1.168",
     val printerPort: Int = 9100,
     val keepScreenOn: Boolean = true,
-    val language: AppLanguage = AppLanguage.RUSSIAN
+    val language: AppLanguage = AppLanguage.RUSSIAN,
+    val isFirstRun: Boolean = true
 )
 
 @Singleton
@@ -40,6 +41,7 @@ class AppPreferences @Inject constructor(
         val PRINTER_PORT = intPreferencesKey("printer_port")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val LANGUAGE = stringPreferencesKey("language")
+        val IS_FIRST_RUN = booleanPreferencesKey("is_first_run")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data
@@ -49,6 +51,7 @@ class AppPreferences @Inject constructor(
         }
         .map { prefs ->
             AppSettings(
+                isFirstRun = prefs[Keys.IS_FIRST_RUN] ?: true,
                 printerIp = prefs[Keys.PRINTER_IP] ?: "192.168.1.168",
                 printerPort = prefs[Keys.PRINTER_PORT] ?: 9100,
                 keepScreenOn = prefs[Keys.KEEP_SCREEN_ON] ?: true,
@@ -70,5 +73,8 @@ class AppPreferences @Inject constructor(
 
     suspend fun setLanguage(lang: AppLanguage) {
         context.dataStore.edit { it[Keys.LANGUAGE] = lang.code }
+    }
+    suspend fun setFirstRunCompleted() {
+        context.dataStore.edit { it[Keys.IS_FIRST_RUN] = false }
     }
 }

@@ -1,100 +1,6 @@
 package com.kgconsol.presentation.batch
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.kgconsol.data.repository.KGRepository
-import com.kgconsol.data.repository.RepoResult
-import com.kgconsol.domain.model.Batch
-import com.kgconsol.domain.model.BoxNumberHelper
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-// ─── ViewModel ────────────────────────────────────────────────────────────────
-
-data class BatchListUiState(
-    val batches: List<Batch> = emptyList(),
-    val suggestedNumber: Int = 1,
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val navigateToBox: Pair<Long, Long>? = null   // batchId to boxId
-)
-
-@HiltViewModel
-class BatchListViewModel @Inject constructor(
-    private val repo: KGRepository
-) : ViewModel() {
-
-    private val _ui = MutableStateFlow(BatchListUiState())
-    val ui: StateFlow<BatchListUiState> = _ui.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            repo.getAllBatches().collect { batches ->
-                val suggested = repo.suggestNextBatchNumber()
-                _ui.update { it.copy(batches = batches, suggestedNumber = suggested) }
-            }
-        }
-    }
-
-    fun createBatchAndBox(batchNumber: Int, autoBox: Boolean, manualBoxNumber: String = "") {
-        viewModelScope.launch {
-            _ui.update { it.copy(isLoading = true, error = null) }
-
-            // 1. Create batch
-            val batchResult = repo.createBatch(batchNumber)
-            if (batchResult is RepoResult.Error) {
-                _ui.update { it.copy(isLoading = false, error = batchResult.message) }
-                return@launch
-            }
-            val batchId = (batchResult as RepoResult.Success).data
-
-            // 2. Create first box
-            val boxNumber: String
-            val isAuto: Boolean
-            if (autoBox) {
-                boxNumber = repo.suggestNextBoxNumber(batchId)
-                isAuto = true
-            } else {
-                boxNumber = manualBoxNumber
-                isAuto = false
-            }
-
-            val boxResult = repo.createBox(batchId, boxNumber, isAuto)
-            if (boxResult is RepoResult.Error) {
-                _ui.update { it.copy(isLoading = false, error = boxResult.message) }
-                return@launch
-            }
-            val boxId = (boxResult as RepoResult.Success).data
-            _ui.update { it.copy(isLoading = false, navigateToBox = batchId to boxId) }
-        }
-    }
-
-    fun openExistingBatch(batchId: Long) {
-        viewModelScope.launch {
-            // Resume open box, or create new one
-            val openBox = repo.getOpenBox(batchId)
-            if (openBox != null) {
-                _ui.update { it.copy(navigateToBox = batchId to openBox.id) }
-            } else {
-                val boxNumber = repo.suggestNextBoxNumber(batchId)
-                val result = repo.createBox(batchId, boxNumber, isAuto = true)
-                if (result is RepoResult.Success) {
-                    _ui.update { it.copy(navigateToBox = batchId to result.data) }
-                }
-            }
-        }
-    }
-
-    fun navigationHandled() = _ui.update { it.copy(navigateToBox = null) }
-    fun clearError() = _ui.update { it.copy(error = null) }
-}
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
-
-import androidx.compose.animation.*
-import androidx.compose.foundation.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -104,12 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.kgconsol.R
 import com.kgconsol.domain.model.Batch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -169,11 +73,7 @@ fun BatchListScreen(
                         tint = MaterialTheme.colorScheme.outline
                     )
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        "No batches yet",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.outline
-                    )
+                    Text("No batches yet", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.outline)
                     Text("Tap + to create your first batch")
                 }
             } else {
@@ -187,7 +87,6 @@ fun BatchListScreen(
                     item { Spacer(Modifier.height(80.dp)) }
                 }
             }
-
             if (state.isLoading) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
             }
@@ -217,27 +116,15 @@ fun BatchListScreen(
 
 @Composable
 private fun BatchCard(batch: Batch, onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Row(
-            Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
                 shape = MaterialTheme.shapes.small,
                 color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(56.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        batch.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    Text(batch.displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
             }
             Spacer(Modifier.width(16.dp))
