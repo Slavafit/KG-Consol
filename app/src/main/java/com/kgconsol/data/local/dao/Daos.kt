@@ -87,6 +87,15 @@ interface OrderDao {
     @Query("SELECT EXISTS(SELECT 1 FROM orders WHERE boxId = :boxId AND orderNumber = :orderNumber)")
     suspend fun orderExistsInBox(boxId: Long, orderNumber: String): Boolean
 
+    @Query("""
+        SELECT EXISTS(
+            SELECT 1 FROM orders o
+            INNER JOIN boxes b ON o.boxId = b.id
+            WHERE b.batchId = :batchId AND o.orderNumber = :orderNumber
+        )
+    """)
+    suspend fun orderExistsInBatch(batchId: Long, orderNumber: String): Boolean
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertOrder(order: OrderEntity): Long
 
@@ -107,4 +116,12 @@ interface OrderDao {
 
     @Query("SELECT COUNT(*) FROM orders WHERE boxId IN (SELECT id FROM boxes WHERE batchId = :batchId)")
     suspend fun getTotalOrdersForBatch(batchId: Long): Int
+
+    @Query("""
+        SELECT b.boxNumber FROM orders o
+        INNER JOIN boxes b ON o.boxId = b.id
+        WHERE b.batchId = :batchId AND o.orderNumber = :orderNumber
+        LIMIT 1
+    """)
+    suspend fun getBoxNumberByOrder(batchId: Long, orderNumber: String): String?
 }

@@ -25,24 +25,29 @@ class ZebraPrinter @Inject constructor() {
         // Label: 150mm × 100mm @ 203 dpi = 1181 × 787 dots
         // Using 8 dots/mm → 150*8=1200 wide, 100*8=800 tall
         private fun buildZpl(
-            batchName: String,  // "KG123"
-            boxDisplay: String, // "ID 11111"
+            batchName: String,
+            boxDisplay: String,
             orderCount: Int,
             date: String
         ): String = """
 ^XA
 ^CI28
+^MMT
+^PW1200
+^LL800
 
-^FO40,40^A0N,55,55^FD$batchName^FS
+^FO60,100^A0N,100,100^FD$batchName^FS
 
-^FO40,120^A0N,110,110^FD$boxDisplay^FS
+^FO60,210^A0N,120,120^FD$boxDisplay^FS
 
-^FO40,260^GB1121,4,4^FS
+^FO60,360^GB1080,4,4^FS
 
-^FO40,285^A0N,40,40^FDOrders: $orderCount^FS
-^FO40,340^A0N,35,35^FD$date^FS
+^FO60,385^A0N,45,45^FDOrders: $orderCount^FS
+^FO60,445^A0N,40,40^FD$date^FS
 
-^FO700,285^BQN,2,8^FDMA,$batchName $boxDisplay^FS
+^FO60,500^GB1080,4,4^FS
+
+^FO60,530^BQN,2,7^FDMA,$batchName $boxDisplay^FS
 
 ^XZ
 """.trimIndent()

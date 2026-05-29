@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
 package com.kgconsol.presentation.scan
 
 import android.Manifest
@@ -5,7 +6,6 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -13,6 +13,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -22,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -30,14 +34,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import com.kgconsol.domain.model.OrderValidator
+import kotlinx.coroutines.delay
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.compose.ui.platform.LocalContext
 
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanScreen(
     boxId: Long,
@@ -61,14 +67,28 @@ fun ScanScreen(
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) launcher.launch(Manifest.permission.CAMERA)
     }
-    // ---------------------------
 
     LaunchedEffect(boxId) { vm.init(boxId) }
 
     LaunchedEffect(state.lastAdded) {
         if (state.lastAdded != null) {
-            kotlinx.coroutines.delay(1500)
+            delay(2000)
             vm.clearLastAdded()
+        }
+    }
+
+    LaunchedEffect(state.navigateBack) {
+        if (state.navigateBack) {
+            delay(1500)  // ← ждём пока toast виден
+            vm.navigateBack()
+            onBack()
+        }
+    }
+
+    LaunchedEffect(state.triggerVibration) {
+        if (state.triggerVibration) {
+            vibrateSuccess(context)
+            vm.vibrationHandled()
         }
     }
 
@@ -159,7 +179,11 @@ fun ScanScreen(
             }
 
             if (state.isManualMode) {
-                Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp,
+                    modifier = Modifier.imePadding()
+                ) {
                     Row(
                         Modifier.fillMaxWidth().padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -171,11 +195,26 @@ fun ScanScreen(
                             label = { Text("Order (01-2345-6789)") },
                             singleLine = true,
                             modifier = Modifier.weight(1f),
-                            isError = state.manualInput.isNotEmpty() && !OrderValidator.isValid(state.manualInput)
+                            visualTransformation = OrderVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    if (state.manualInput.length == 10) vm.submitManual()
+                                }
+                            ),
+                            isError = (state.manualInput.isNotEmpty() && state.manualInput.length < 10) || state.error != null,
+                            supportingText = {
+                                state.error?.let { err ->
+                                    Text(text = err, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
                         )
                         Button(
                             onClick = vm::submitManual,
-                            enabled = OrderValidator.isValid(state.manualInput)
+                            enabled = state.manualInput.length == 10
                         ) { Text("Add") }
                     }
                 }
@@ -257,4 +296,49 @@ private fun CameraPreview(
             }, ContextCompat.getMainExecutor(context))
         }
     )
+}
+
+private fun vibrateSuccess(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        val vibrator = vibratorManager.defaultVibrator
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+        )
+    } else {
+        @Suppress("DEPRECATION")
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(100)
+        }
+    }
+}
+class OrderVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val digits = text.text
+        val formatted = buildString {
+            digits.forEachIndexed { i, c ->
+                if (i == 2 || i == 6) append('-')
+                append(c)
+            }
+        }
+        val offsetMap = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int = when {
+                offset <= 2 -> offset
+                offset <= 6 -> offset + 1
+                else -> offset + 2
+            }
+            override fun transformedToOriginal(offset: Int): Int = when {
+                offset <= 2 -> offset
+                offset <= 7 -> offset - 1
+                else -> offset - 2
+            }
+        }
+        return TransformedText(AnnotatedString(formatted), offsetMap)
+    }
 }

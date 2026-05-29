@@ -15,7 +15,9 @@ data class ScanUiState(
     val lastAdded: String? = null,
     val error: String? = null,
     val manualInput: String = "",
-    val isManualMode: Boolean = false
+    val isManualMode: Boolean = false,
+    val navigateBack: Boolean = false,
+    val triggerVibration: Boolean = false
 )
 
 @HiltViewModel
@@ -56,15 +58,33 @@ class ScanViewModel @Inject constructor(
         viewModelScope.launch {
             val result = repo.addOrder(boxId, orderNumber)
             when (result) {
-                is RepoResult.Success -> _ui.update { it.copy(lastAdded = orderNumber, error = null, manualInput = "") }
+                is RepoResult.Success -> _ui.update {
+                    //it.copy(lastAdded = orderNumber, error = null, manualInput = "")
+                    it.copy(
+                        lastAdded = orderNumber,
+                        error = null, manualInput = "",
+                        navigateBack = true,
+                        triggerVibration = true
+                    )
+                }
                 is RepoResult.Error -> _ui.update { it.copy(error = result.message) }
             }
         }
     }
 
-    fun setManualInput(v: String) = _ui.update { it.copy(manualInput = v) }
+    //fun setManualInput(v: String) = _ui.update { it.copy(manualInput = v) }
+    fun setManualInput(raw: String) {
+        val digits = raw.filter { it.isDigit() }.take(10)
+        _ui.update { it.copy(manualInput = digits) }
+    }
     fun toggleManualMode() = _ui.update { it.copy(isManualMode = !it.isManualMode) }
-    fun submitManual() { addOrder(_ui.value.manualInput) }
+    fun submitManual() {
+        val digits = _ui.value.manualInput
+        val formatted = "${digits.take(2)}-${digits.substring(2, 6)}-${digits.substring(6, 10)}"
+        addOrder(formatted)
+    }
     fun clearError() = _ui.update { it.copy(error = null) }
     fun clearLastAdded() = _ui.update { it.copy(lastAdded = null) }
+    fun navigateBack() = _ui.update { it.copy(navigateBack = false) }
+    fun vibrationHandled() = _ui.update { it.copy(triggerVibration = false) }
 }

@@ -87,6 +87,10 @@ class KGRepository @Inject constructor(
         boxDao.updateBox(box.copy(isCompleted = true))
         return RepoResult.Success(Unit)
     }
+    suspend fun deleteBoxById(boxId: Long) {
+        val box = boxDao.getBoxById(boxId) ?: return
+        boxDao.deleteBox(box)
+    }
 
     // ── Orders ────────────────────────────────────────────────────────────────
 
@@ -102,8 +106,17 @@ class KGRepository @Inject constructor(
         if (!OrderValidator.isValid(normalized)) {
             return RepoResult.Error("Invalid order format. Expected: 01-2345-6789")
         }
+        // Проверка дубля в коробке
         if (orderDao.orderExistsInBox(boxId, normalized)) {
-            return RepoResult.Error("Order $normalized already added to this box")
+            return RepoResult.Error("Order $normalized already exists in this box")
+        }
+        // Проверка дубля в партии
+        val box = boxDao.getBoxById(boxId)
+        if (box != null) {
+            val boxNumber = orderDao.getBoxNumberByOrder(box.batchId, normalized)
+            if (orderDao.orderExistsInBatch(box.batchId, normalized)) {
+                return RepoResult.Error("Order $normalized already exists in box ID $boxNumber")
+            }
         }
         return try {
             val id = orderDao.insertOrder(
