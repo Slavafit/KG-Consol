@@ -19,6 +19,7 @@ import javax.inject.Inject
 data class BoxUiState(
     val batch: Batch? = null,
     val box: Box? = null,
+    val allBoxes: List<Box> = emptyList(),
     val orders: List<Order> = emptyList(),
     val isPrinting: Boolean = false,
     val showSuccess: Boolean = false,
@@ -40,7 +41,13 @@ class BoxViewModel @Inject constructor(
         viewModelScope.launch {
             val batch = repo.getBatch(batchId)
             _ui.update { it.copy(batch = batch) }
+            
+            // Загружаем все коробки этой партии
+            repo.getBoxesForBatch(batchId).collect { boxes ->
+                _ui.update { it.copy(allBoxes = boxes) }
+            }
         }
+        
         viewModelScope.launch {
             repo.getOrdersForBox(boxId).collect { orders ->
                 val box = repo.getBox(boxId)
@@ -61,6 +68,48 @@ class BoxViewModel @Inject constructor(
             repo.completeBox(box.id)
 
             // 2. Print 2 labels
+            printLabelsInternal(box, batch, state.orders.size)
+        }
+    }
+
+    private suspend fun printLabelsInternal(box: Box, batch: Batch, orderCount: Int) {
+        val settings = prefs.settings.first()
+        val result = printer.printBoxLabel(
+            ip = settings.printerIp,
+            port = settings.printerPort,
+            batchName = batch.displayName,
+            boxDisplay = box.displayId,
+            orderCount = orderCount,
+            copies = 2
+        )
+
+        when (result) {
+            is PrintResult.Success -> {
+                _ui.update { it.copy(isPrinting = false, showSuccess = true) }
+                delay(1500)
+
+                // Если мы завершили текущую коробку, создаем новую
+                val nextNumber = repo.suggestNextBoxNumber(batch.id)
+                val boxResult = repo.createBox(batch.id, nextNumber, isAuto = true)
+                if (boxResult is RepoResult.Success) {
+                    _ui.update { it.copy(showSuccess = false, navigateToBox = batch.id to boxResult.data) }
+                } else {
+                    _ui.update { it.copy(showSuccess = false) }
+                }
+            }
+            is PrintResult.Error -> {
+                _ui.update { it.copy(isPrinting = false, error = result.message) }
+            }
+        }
+    }
+    
+    fun reprintLabels() {
+        val state = _ui.value
+        val box = state.box ?: return
+        val batch = state.batch ?: return
+        
+        viewModelScope.launch {
+            _ui.update { it.copy(isPrinting = true, error = null) }
             val settings = prefs.settings.first()
             val result = printer.printBoxLabel(
                 ip = settings.printerIp,
@@ -70,25 +119,9 @@ class BoxViewModel @Inject constructor(
                 orderCount = state.orders.size,
                 copies = 2
             )
-
-            when (result) {
-                is PrintResult.Success -> {
-                    // 3. Show success animation
-                    _ui.update { it.copy(isPrinting = false, showSuccess = true) }
-                    delay(1500)
-
-                    // 4. Open next box automatically
-                    val nextNumber = repo.suggestNextBoxNumber(batch.id)
-                    val boxResult = repo.createBox(batch.id, nextNumber, isAuto = true)
-                    if (boxResult is RepoResult.Success) {
-                        _ui.update { it.copy(showSuccess = false, navigateToBox = batch.id to boxResult.data) }
-                    } else {
-                        _ui.update { it.copy(showSuccess = false) }
-                    }
-                }
-                is PrintResult.Error -> {
-                    _ui.update { it.copy(isPrinting = false, error = result.message) }
-                }
+            _ui.update { it.copy(isPrinting = false) }
+            if (result is PrintResult.Error) {
+                _ui.update { it.copy(error = result.message) }
             }
         }
     }
@@ -99,4 +132,18 @@ class BoxViewModel @Inject constructor(
 
     fun navigationHandled() = _ui.update { it.copy(navigateToBox = null) }
     fun clearError() = _ui.update { it.copy(error = null) }
+    
+    fun updateBoxNumber(newNumber: String) {
+        viewModelScope.launch {
+            val box = _ui.value.box ?: return@launch
+            repo.updateBoxNumber(box.id, newNumber)
+        }
+    }
+    
+    fun reopenBox() {
+        viewModelScope.launch {
+            val box = _ui.value.box ?: return@launch
+            repo.setBoxCompleted(box.id, false)
+        }
+    }
 }

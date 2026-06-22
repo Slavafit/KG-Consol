@@ -57,8 +57,8 @@ object BoxNumberHelper {
 // Order number validation
 // ─────────────────────────────────────────────────────────────────────────────
 object OrderValidator {
-    // Format: 01-2345-6789  (2 digits - 4 digits - 4 digits)
-    private val REGEX = Regex("""^\d{2}-\d{4}-\d{4}$""")
+    // Форматы: 01-2345-6789  или  01-2345-6789/2
+    private val REGEX = Regex("""^\d{2}-\d{4}-\d{4}(/\d+)?$""")
 
     fun isValid(input: String): Boolean = REGEX.matches(input.trim())
 

@@ -82,9 +82,13 @@ class KGRepository @Inject constructor(
     suspend fun getOpenBox(batchId: Long): Box? = boxDao.getOpenBox(batchId)?.toDomain()
 
     suspend fun completeBox(boxId: Long): RepoResult<Unit> {
+        return setBoxCompleted(boxId, true)
+    }
+
+    suspend fun setBoxCompleted(boxId: Long, completed: Boolean): RepoResult<Unit> {
         val box = boxDao.getBoxById(boxId)
             ?: return RepoResult.Error("Box not found")
-        boxDao.updateBox(box.copy(isCompleted = true))
+        boxDao.updateBox(box.copy(isCompleted = completed))
         return RepoResult.Success(Unit)
     }
     suspend fun deleteBoxById(boxId: Long) {
@@ -113,9 +117,9 @@ class KGRepository @Inject constructor(
         // Проверка дубля в партии
         val box = boxDao.getBoxById(boxId)
         if (box != null) {
-            val boxNumber = orderDao.getBoxNumberByOrder(box.batchId, normalized)
-            if (orderDao.orderExistsInBatch(box.batchId, normalized)) {
-                return RepoResult.Error("Order $normalized already exists in box ID $boxNumber")
+            val existingBoxNumber = orderDao.getBoxNumberByOrder(box.batchId, normalized)
+            if (existingBoxNumber != null) {
+                return RepoResult.Error("Order $normalized already exists in box ID $existingBoxNumber")
             }
         }
         return try {
@@ -149,4 +153,9 @@ class KGRepository @Inject constructor(
     private fun OrderEntity.toDomain() = Order(
         id = id, boxId = boxId, orderNumber = orderNumber, scannedAt = scannedAt
     )
+    //Редактирование коробок
+    suspend fun updateBoxNumber(boxId: Long, newNumber: String) {
+        val box = boxDao.getBoxById(boxId) ?: return
+        boxDao.updateBox(box.copy(boxNumber = newNumber))
+    }
 }

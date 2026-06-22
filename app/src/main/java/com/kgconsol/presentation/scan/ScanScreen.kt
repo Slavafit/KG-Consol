@@ -2,7 +2,12 @@
 package com.kgconsol.presentation.scan
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,6 +33,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,12 +43,6 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.delay
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import android.content.Context
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun ScanScreen(
@@ -79,7 +79,7 @@ fun ScanScreen(
 
     LaunchedEffect(state.navigateBack) {
         if (state.navigateBack) {
-            delay(1500)  // ← ждём пока toast виден
+            delay(1500)
             vm.navigateBack()
             onBack()
         }
@@ -142,12 +142,28 @@ fun ScanScreen(
                     }
                 }
 
+                // Scanning frame overlay
                 Box(
                     Modifier
                         .align(Alignment.Center)
                         .size(width = 280.dp, height = 80.dp)
                         .border(2.dp, Color(0xFF4CAF50), RoundedCornerShape(8.dp))
                 )
+
+                // Recognition Progress Bar
+                if (state.recognitionProgress > 0f) {
+                    LinearProgressIndicator(
+                        progress = { state.recognitionProgress },
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .offset(y = (-48).dp) // Just above the frame
+                            .width(280.dp)
+                            .height(4.dp),
+                        color = Color(0xFF4CAF50),
+                        trackColor = Color.White.copy(alpha = 0.3f),
+                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                    )
+                }
 
                 state.lastAdded?.let { added ->
                     Surface(
@@ -185,10 +201,12 @@ fun ScanScreen(
                     modifier = Modifier.imePadding()
                 ) {
                     Row(
-                        Modifier.fillMaxWidth().padding(12.dp),
+                        Modifier.fillMaxWidth()
+                            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // Main number input
                         OutlinedTextField(
                             value = state.manualInput,
                             onValueChange = vm::setManualInput,
@@ -198,6 +216,21 @@ fun ScanScreen(
                             visualTransformation = OrderVisualTransformation(),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Next
+                            ),
+                            isError = state.manualInput.isNotEmpty() && state.manualInput.length < 10
+                        )
+                        // Fraction symbol
+                        Text("/", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        // Fraction number input
+                        OutlinedTextField(
+                            value = state.manualFraction,
+                            onValueChange = vm::setManualFraction,
+                            label = { Text("№") },
+                            singleLine = true,
+                            modifier = Modifier.width(72.dp),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done
                             ),
                             keyboardActions = KeyboardActions(
@@ -205,7 +238,7 @@ fun ScanScreen(
                                     if (state.manualInput.length == 10) vm.submitManual()
                                 }
                             ),
-                            isError = (state.manualInput.isNotEmpty() && state.manualInput.length < 10) || state.error != null,
+                            isError = state.error != null,
                             supportingText = {
                                 state.error?.let { err ->
                                     Text(text = err, color = MaterialTheme.colorScheme.error)
@@ -318,6 +351,7 @@ private fun vibrateSuccess(context: Context) {
         }
     }
 }
+
 class OrderVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val digits = text.text
