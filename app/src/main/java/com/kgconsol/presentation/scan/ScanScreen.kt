@@ -38,6 +38,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.delay
@@ -133,7 +136,7 @@ fun ScanScreen(
                 if (hasCameraPermission) {
                     CameraPreview(
                         onCameraReady = { cam -> camera = cam },
-                        onTextRecognized = vm::onTextScanned,
+                        onCodeRecognized = vm::onCodeScanned,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
@@ -269,17 +272,34 @@ fun ScanScreen(
 @Composable
 private fun CameraPreview(
     onCameraReady: (Camera) -> Unit,
-    onTextRecognized: (String) -> Unit,
+    onCodeRecognized: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    val barcodeScanner = remember {
+        val options = BarcodeScannerOptions.Builder()
+            .setBarcodeFormats(
+                Barcode.FORMAT_CODE_128,
+                Barcode.FORMAT_CODE_39,
+                Barcode.FORMAT_CODE_93,
+                Barcode.FORMAT_CODABAR,
+                Barcode.FORMAT_EAN_13,
+                Barcode.FORMAT_EAN_8,
+                Barcode.FORMAT_ITF,
+                Barcode.FORMAT_UPC_A,
+                Barcode.FORMAT_UPC_E
+            )
+            .build()
+        BarcodeScanning.getClient(options)
+    }
     val executor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
 
     DisposableEffect(Unit) {
         onDispose {
             recognizer.close()
+            barcodeScanner.close()
             executor.shutdown()
         }
     }
@@ -304,11 +324,31 @@ private fun CameraPreview(
                     val mediaImage = imageProxy.image
                     if (mediaImage != null) {
                         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-                        recognizer.process(image)
-                            .addOnSuccessListener { visionText ->
-                                if (visionText.text.isNotBlank()) onTextRecognized(visionText.text)
+                        // Decode a real 1D barcode first. OCR remains as a fallback for
+                        // labels where only the printed order number is visible.
+                        barcodeScanner.process(image)
+                            .addOnSuccessListener { barcodes ->
+                                val value = barcodes.firstNotNullOfOrNull { it.rawValue?.takeIf(String::isNotBlank) }
+                                if (value != null) {
+                                    onCodeRecognized(value)
+                                } else {
+                                    recognizer.process(image)
+                                        .addOnSuccessListener { visionText ->
+                                            if (visionText.text.isNotBlank()) onCodeRecognized(visionText.text)
+                                        }
+                                        .addOnCompleteListener { imageProxy.close() }
+                                }
                             }
-                            .addOnCompleteListener { imageProxy.close() }
+                            .addOnFailureListener {
+                                recognizer.process(image)
+                                    .addOnSuccessListener { visionText ->
+                                        if (visionText.text.isNotBlank()) onCodeRecognized(visionText.text)
+                                    }
+                                    .addOnCompleteListener { imageProxy.close() }
+                            }
+                            .addOnSuccessListener { barcodes ->
+                                if (barcodes.any { !it.rawValue.isNullOrBlank() }) imageProxy.close()
+                            }
                     } else {
                         imageProxy.close()
                     }

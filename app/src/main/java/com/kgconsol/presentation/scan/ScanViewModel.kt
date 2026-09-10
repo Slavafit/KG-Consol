@@ -51,13 +51,22 @@ class ScanViewModel @Inject constructor(
         }
     }
 
-    fun onTextScanned(rawText: String) {
+    fun onCodeScanned(rawText: String) {
         val now = System.currentTimeMillis()
         
-        // 1. Ищем все совпадения паттерна заказа (база + любое кол-во дробей).
-        // Используем (?:/\d+)* для захвата /1, /1/1 и т.д.
-        val regex = Regex("""\d{2}-\d{4}-\d{4}(?:/\d+)*""")
-        val matches = regex.findAll(rawText).map { it.value }.toList()
+        // A barcode may contain either the displayed value (01-2345-6789/1)
+        // or its compact representation (0123456789/1).
+        val formattedRegex = Regex("""\d{2}-\d{4}-\d{4}(?:/\d+)*""")
+        val compactRegex = Regex("""(?<!\d)\d{10}(?:/\d+)*(?!\d)""")
+        val matches = buildList {
+            formattedRegex.findAll(rawText).forEach { add(it.value) }
+            compactRegex.findAll(rawText).forEach { result ->
+                val value = result.value
+                val digits = value.substringBefore('/')
+                val fraction = value.removePrefix(digits)
+                add("${digits.take(2)}-${digits.substring(2, 6)}-${digits.takeLast(4)}$fraction")
+            }
+        }
 
         if (matches.isEmpty()) {
             if (now - lastCandidateTime > STABILITY_TIMEOUT_MS && recognitionCount > 0) {

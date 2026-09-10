@@ -66,13 +66,10 @@ class ReportsViewModel @Inject constructor(
     private fun buildReportText(batch: Batch, reports: List<BoxReport>): String {
         val fmt = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
         val sb = StringBuilder()
-        sb.appendLine("══════════════════")
         sb.appendLine("  BATCH REPORT: ${batch.displayName}")
         sb.appendLine("  Generated: ${fmt.format(Date())}")
-        sb.appendLine("══════════════════")
         sb.appendLine("Total boxes : ${reports.size}")
         sb.appendLine("Total orders: ${reports.sumOf { it.orders.size }}")
-        sb.appendLine()
 
         reports.forEachIndexed { i, report ->
             sb.appendLine("──────────────────")

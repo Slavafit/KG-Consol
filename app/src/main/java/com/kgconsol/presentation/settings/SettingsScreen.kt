@@ -1,5 +1,6 @@
 package com.kgconsol.presentation.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -24,6 +26,7 @@ fun SettingsScreen(
     vm: SettingsViewModel = hiltViewModel()
 ) {
     val state by vm.ui.collectAsState()
+    val uriHandler = LocalUriHandler.current
     var ipField by remember(state.settings.printerIp) { mutableStateOf(state.settings.printerIp) }
     var portField by remember(state.settings.printerPort) { mutableStateOf(state.settings.printerPort.toString()) }
 
@@ -172,7 +175,24 @@ fun SettingsScreen(
 
             // ── App Info ────────────────────────────────────────────────────
             SettingsSection(title = "About", icon = Icons.Default.Info) {
-                Text("KG Consol v1.0.0", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "Разработчик: Вячеслав Фитлин",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Telegram: @Slavafit",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri("https://t.me/Slavafit")
+                    }
+                )
+                
+                Spacer(Modifier.height(8.dp))
+
+                Text("KG Consol v1.3", style = MaterialTheme.typography.bodyMedium)
                 Text(
                     "Barcode scanning and label printing for warehouse operations.",
                     style = MaterialTheme.typography.bodySmall,
