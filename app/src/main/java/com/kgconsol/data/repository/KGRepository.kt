@@ -104,10 +104,17 @@ class KGRepository @Inject constructor(
     fun getOrdersForBatch(batchId: Long): Flow<List<Order>> =
         orderDao.getOrdersForBatch(batchId).map { list -> list.map { it.toDomain() } }
 
-    suspend fun addOrder(boxId: Long, orderNumber: String): RepoResult<Long> {
-        val normalized = OrderValidator.normalize(orderNumber)
+    suspend fun addOrder(
+        boxId: Long,
+        orderNumber: String,
+        validateFormat: Boolean = true
+    ): RepoResult<Long> {
+        val normalized = if (validateFormat) OrderValidator.normalize(orderNumber) else orderNumber
 
-        if (!OrderValidator.isValid(normalized)) {
+        if (normalized.isBlank()) {
+            return RepoResult.Error("Barcode is empty")
+        }
+        if (validateFormat && !OrderValidator.isValid(normalized)) {
             return RepoResult.Error("Invalid order format. Expected: 01-2345-6789")
         }
         // Проверка дубля в коробке

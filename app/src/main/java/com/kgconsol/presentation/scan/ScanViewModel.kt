@@ -37,6 +37,8 @@ class ScanViewModel @Inject constructor(
 
     private var lastScanned = ""
     private var lastScannedTime = 0L
+    private var lastUnsupportedBarcode = ""
+    private var lastUnsupportedBarcodeTime = 0L
     private val DEBOUNCE_MS = 2500L // Пауза между одинаковыми сканами
 
     // Механизм стабильного распознавания (3 подтверждения)
@@ -64,17 +66,27 @@ class ScanViewModel @Inject constructor(
     }
 
     fun onBarcodeScanned(rawValue: String) {
-        val match = findOrderNumbers(rawValue).maxByOrNull { it.length }
-        Log.d("KGBarcode", "Parsed order: raw=$rawValue, normalized=$match")
-        if (match == null) return
+        val barcodeValue = rawValue
+        Log.d("KGBarcode", "Barcode order: raw=$rawValue, stored=$barcodeValue")
+        if (barcodeValue.isEmpty()) {
+            val now = System.currentTimeMillis()
+            if (rawValue != lastUnsupportedBarcode || now - lastUnsupportedBarcodeTime >= DEBOUNCE_MS) {
+                lastUnsupportedBarcode = rawValue
+                lastUnsupportedBarcodeTime = now
+                _ui.update {
+                    it.copy(error = "Штрихкод распознан, но номер заказа в нём не найден. Значение: $rawValue")
+                }
+            }
+            return
+        }
 
         val now = System.currentTimeMillis()
-        if (match == lastScanned && now - lastScannedTime < DEBOUNCE_MS) return
+        if (barcodeValue == lastScanned && now - lastScannedTime < DEBOUNCE_MS) return
 
-        lastScanned = match
+        lastScanned = barcodeValue
         lastScannedTime = now
         resetRecognition()
-        addOrder(match)
+        addOrder(barcodeValue, validateFormat = false)
     }
 
     fun onTextScanned(rawText: String) {
@@ -149,10 +161,10 @@ class ScanViewModel @Inject constructor(
         _ui.update { it.copy(recognitionProgress = 0f) }
     }
 
-    fun addOrder(orderNumber: String) {
+    fun addOrder(orderNumber: String, validateFormat: Boolean = true) {
         val boxId = _ui.value.boxId
         viewModelScope.launch {
-            val result = repo.addOrder(boxId, orderNumber)
+            val result = repo.addOrder(boxId, orderNumber, validateFormat)
             when (result) {
                 is RepoResult.Success -> {
                     _ui.update {

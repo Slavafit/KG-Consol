@@ -38,9 +38,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.delay
@@ -285,22 +283,9 @@ private fun CameraPreview(
     val currentTextCallback by rememberUpdatedState(onTextRecognized)
     val isBarcodeEnabled by rememberUpdatedState(barcodeScanningEnabled)
     val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
-    val barcodeScanner = remember {
-        val options = BarcodeScannerOptions.Builder()
-            .setBarcodeFormats(
-                Barcode.FORMAT_CODE_128,
-                Barcode.FORMAT_CODE_39,
-                Barcode.FORMAT_CODE_93,
-                Barcode.FORMAT_CODABAR,
-                Barcode.FORMAT_EAN_13,
-                Barcode.FORMAT_EAN_8,
-                Barcode.FORMAT_ITF,
-                Barcode.FORMAT_UPC_A,
-                Barcode.FORMAT_UPC_E
-            )
-            .build()
-        BarcodeScanning.getClient(options)
-    }
+    // Do not restrict formats while diagnosing warehouse labels: some printers
+    // use PDF417, Data Matrix or QR even when the label looks like a 1D code.
+    val barcodeScanner = remember { BarcodeScanning.getClient() }
     val executor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
 
     DisposableEffect(Unit) {
@@ -328,6 +313,7 @@ private fun CameraPreview(
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
                 val analysis = ImageAnalysis.Builder()
+                    .setTargetResolution(android.util.Size(1280, 720))
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
 
