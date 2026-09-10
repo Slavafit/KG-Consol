@@ -38,6 +38,7 @@ class SettingsViewModel @Inject constructor(
     fun setIp(ip: String) = viewModelScope.launch { prefs.setPrinterIp(ip) }
     fun setPort(port: Int) = viewModelScope.launch { prefs.setPrinterPort(port) }
     fun setKeepScreenOn(v: Boolean) = viewModelScope.launch { prefs.setKeepScreenOn(v) }
+    fun setBarcodeScanningEnabled(v: Boolean) = viewModelScope.launch { prefs.setBarcodeScanningEnabled(v) }
     fun setLanguage(lang: AppLanguage) = viewModelScope.launch { prefs.setLanguage(lang) }
 
     fun testPrint() {

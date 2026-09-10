@@ -136,7 +136,9 @@ fun ScanScreen(
                 if (hasCameraPermission) {
                     CameraPreview(
                         onCameraReady = { cam -> camera = cam },
-                        onCodeRecognized = vm::onCodeScanned,
+                        onBarcodeRecognized = vm::onBarcodeScanned,
+                        onTextRecognized = vm::onTextScanned,
+                        barcodeScanningEnabled = state.barcodeScanningEnabled,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
@@ -272,11 +274,16 @@ fun ScanScreen(
 @Composable
 private fun CameraPreview(
     onCameraReady: (Camera) -> Unit,
-    onCodeRecognized: (String) -> Unit,
+    onBarcodeRecognized: (String) -> Unit,
+    onTextRecognized: (String) -> Unit,
+    barcodeScanningEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val currentBarcodeCallback by rememberUpdatedState(onBarcodeRecognized)
+    val currentTextCallback by rememberUpdatedState(onTextRecognized)
+    val isBarcodeEnabled by rememberUpdatedState(barcodeScanningEnabled)
     val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     val barcodeScanner = remember {
         val options = BarcodeScannerOptions.Builder()
@@ -310,6 +317,10 @@ private fun CameraPreview(
         },
         modifier = modifier,
         update = { previewView ->
+            // State updates must not reconnect CameraX: that interrupts analysis.
+            if (previewView.tag == "camera-bound") return@AndroidView
+            previewView.tag = "camera-bound"
+
             val future = ProcessCameraProvider.getInstance(context)
             future.addListener({
                 val cameraProvider = future.get()
@@ -324,28 +335,30 @@ private fun CameraPreview(
                     val mediaImage = imageProxy.image
                     if (mediaImage != null) {
                         val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-                        // Decode a real 1D barcode first. OCR remains as a fallback for
-                        // labels where only the printed order number is visible.
+                        fun recognizePrintedText() {
+                            recognizer.process(image)
+                                .addOnSuccessListener { visionText ->
+                                    if (visionText.text.isNotBlank()) currentTextCallback(visionText.text)
+                                }
+                                .addOnCompleteListener { imageProxy.close() }
+                        }
+
+                        if (!isBarcodeEnabled) {
+                            recognizePrintedText()
+                            return@setAnalyzer
+                        }
+
                         barcodeScanner.process(image)
                             .addOnSuccessListener { barcodes ->
                                 val value = barcodes.firstNotNullOfOrNull { it.rawValue?.takeIf(String::isNotBlank) }
                                 if (value != null) {
-                                    onCodeRecognized(value)
+                                    Log.d("KGBarcode", "Decoded barcode: format=${barcodes.first().format}, value=$value")
+                                    currentBarcodeCallback(value)
                                 } else {
-                                    recognizer.process(image)
-                                        .addOnSuccessListener { visionText ->
-                                            if (visionText.text.isNotBlank()) onCodeRecognized(visionText.text)
-                                        }
-                                        .addOnCompleteListener { imageProxy.close() }
+                                    recognizePrintedText()
                                 }
                             }
-                            .addOnFailureListener {
-                                recognizer.process(image)
-                                    .addOnSuccessListener { visionText ->
-                                        if (visionText.text.isNotBlank()) onCodeRecognized(visionText.text)
-                                    }
-                                    .addOnCompleteListener { imageProxy.close() }
-                            }
+                            .addOnFailureListener { recognizePrintedText() }
                             .addOnSuccessListener { barcodes ->
                                 if (barcodes.any { !it.rawValue.isNullOrBlank() }) imageProxy.close()
                             }

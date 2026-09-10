@@ -146,6 +146,31 @@ fun SettingsScreen(
                 }
             }
 
+            SettingsSection(title = "Сканер", icon = Icons.Default.QrCodeScanner) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Обычный штрихкод (1D)", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Code 128, Code 39, EAN, ITF, UPC и Codabar",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                    Switch(
+                        checked = state.settings.barcodeScanningEnabled,
+                        onCheckedChange = vm::setBarcodeScanningEnabled
+                    )
+                }
+                Text(
+                    "Распознавание напечатанного цифрового кода остаётся доступным.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+
             // ── Language Section ────────────────────────────────────────────
             SettingsSection(title = "Language", icon = Icons.Default.Language) {
                 val languages = listOf(
@@ -192,7 +217,7 @@ fun SettingsScreen(
                 
                 Spacer(Modifier.height(8.dp))
 
-                Text("KG Consol v1.3", style = MaterialTheme.typography.bodyMedium)
+                Text("KG Consol v1.4.1", style = MaterialTheme.typography.bodyMedium)
                 Text(
                     "Barcode scanning and label printing for warehouse operations.",
                     style = MaterialTheme.typography.bodySmall,

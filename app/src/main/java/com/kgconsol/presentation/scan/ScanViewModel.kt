@@ -1,9 +1,11 @@
 package com.kgconsol.presentation.scan
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kgconsol.data.repository.KGRepository
 import com.kgconsol.data.repository.RepoResult
+import com.kgconsol.data.preferences.AppPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,12 +22,14 @@ data class ScanUiState(
     val navigateBack: Boolean = false,
     val triggerVibration: Boolean = false,
     val triggerBeep: Boolean = false,    // Флаг для звукового сигнала
+    val barcodeScanningEnabled: Boolean = true,
     val recognitionProgress: Float = 0f // Прогресс подтверждения (0.0 до 1.0)
 )
 
 @HiltViewModel
 class ScanViewModel @Inject constructor(
-    private val repo: KGRepository
+    private val repo: KGRepository,
+    prefs: AppPreferences
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(ScanUiState())
@@ -42,6 +46,14 @@ class ScanViewModel @Inject constructor(
     private val REQUIRED_CONFIRMATIONS = 3
     private val STABILITY_TIMEOUT_MS = 500L // Сброс прогресса, если номер пропал на 0.5 сек
 
+    init {
+        viewModelScope.launch {
+            prefs.settings.collect { settings ->
+                _ui.update { it.copy(barcodeScanningEnabled = settings.barcodeScanningEnabled) }
+            }
+        }
+    }
+
     fun init(boxId: Long) {
         _ui.update { it.copy(boxId = boxId) }
         viewModelScope.launch {
@@ -51,22 +63,23 @@ class ScanViewModel @Inject constructor(
         }
     }
 
-    fun onCodeScanned(rawText: String) {
+    fun onBarcodeScanned(rawValue: String) {
+        val match = findOrderNumbers(rawValue).maxByOrNull { it.length }
+        Log.d("KGBarcode", "Parsed order: raw=$rawValue, normalized=$match")
+        if (match == null) return
+
         val now = System.currentTimeMillis()
-        
-        // A barcode may contain either the displayed value (01-2345-6789/1)
-        // or its compact representation (0123456789/1).
-        val formattedRegex = Regex("""\d{2}-\d{4}-\d{4}(?:/\d+)*""")
-        val compactRegex = Regex("""(?<!\d)\d{10}(?:/\d+)*(?!\d)""")
-        val matches = buildList {
-            formattedRegex.findAll(rawText).forEach { add(it.value) }
-            compactRegex.findAll(rawText).forEach { result ->
-                val value = result.value
-                val digits = value.substringBefore('/')
-                val fraction = value.removePrefix(digits)
-                add("${digits.take(2)}-${digits.substring(2, 6)}-${digits.takeLast(4)}$fraction")
-            }
-        }
+        if (match == lastScanned && now - lastScannedTime < DEBOUNCE_MS) return
+
+        lastScanned = match
+        lastScannedTime = now
+        resetRecognition()
+        addOrder(match)
+    }
+
+    fun onTextScanned(rawText: String) {
+        val now = System.currentTimeMillis()
+        val matches = findOrderNumbers(rawText)
 
         if (matches.isEmpty()) {
             if (now - lastCandidateTime > STABILITY_TIMEOUT_MS && recognitionCount > 0) {
@@ -110,6 +123,24 @@ class ScanViewModel @Inject constructor(
             resetRecognition()
             addOrder(match)
         }
+    }
+
+    private fun findOrderNumbers(rawValue: String): List<String> {
+        // Some scanners return spaces or non-breaking spaces around separators.
+        val normalizedRaw = rawValue.trim().replace('\u00A0', ' ')
+        val formattedRegex = Regex("""\d{2}\s*-\s*\d{4}\s*-\s*\d{4}(?:\s*/\s*\d+)*""")
+        val compactRegex = Regex("""(?<!\d)\d{10}(?:\s*/\s*\d+)*(?!\d)""")
+        return buildList {
+            formattedRegex.findAll(normalizedRaw).forEach { result ->
+                add(result.value.replace(" ", ""))
+            }
+            compactRegex.findAll(normalizedRaw).forEach { result ->
+                val value = result.value.replace(" ", "")
+                val digits = value.substringBefore('/')
+                val fraction = value.removePrefix(digits)
+                add("${digits.take(2)}-${digits.substring(2, 6)}-${digits.takeLast(4)}$fraction")
+            }
+        }.distinct()
     }
 
     private fun resetRecognition() {

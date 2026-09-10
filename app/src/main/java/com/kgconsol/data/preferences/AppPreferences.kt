@@ -28,6 +28,7 @@ data class AppSettings(
     val printerIp: String = "192.168.1.168",
     val printerPort: Int = 9100,
     val keepScreenOn: Boolean = true,
+    val barcodeScanningEnabled: Boolean = true,
     val language: AppLanguage = AppLanguage.RUSSIAN,
     val isFirstRun: Boolean = true
 )
@@ -40,6 +41,7 @@ class AppPreferences @Inject constructor(
         val PRINTER_IP = stringPreferencesKey("printer_ip")
         val PRINTER_PORT = intPreferencesKey("printer_port")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
+        val BARCODE_SCANNING_ENABLED = booleanPreferencesKey("barcode_scanning_enabled")
         val LANGUAGE = stringPreferencesKey("language")
         val IS_FIRST_RUN = booleanPreferencesKey("is_first_run")
     }
@@ -55,6 +57,7 @@ class AppPreferences @Inject constructor(
                 printerIp = prefs[Keys.PRINTER_IP] ?: "192.168.1.168",
                 printerPort = prefs[Keys.PRINTER_PORT] ?: 9100,
                 keepScreenOn = prefs[Keys.KEEP_SCREEN_ON] ?: true,
+                barcodeScanningEnabled = prefs[Keys.BARCODE_SCANNING_ENABLED] ?: true,
                 language = AppLanguage.fromCode(prefs[Keys.LANGUAGE] ?: "ru")
             )
         }
@@ -69,6 +72,10 @@ class AppPreferences @Inject constructor(
 
     suspend fun setKeepScreenOn(enabled: Boolean) {
         context.dataStore.edit { it[Keys.KEEP_SCREEN_ON] = enabled }
+    }
+
+    suspend fun setBarcodeScanningEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.BARCODE_SCANNING_ENABLED] = enabled }
     }
 
     suspend fun setLanguage(lang: AppLanguage) {
