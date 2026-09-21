@@ -14,8 +14,8 @@ android {
         applicationId = "com.kgconsol"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.4.8"
+        versionCode = 11
+        versionName = "1.4.9"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

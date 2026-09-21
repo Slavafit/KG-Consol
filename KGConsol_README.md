@@ -2,7 +2,7 @@
 
 > Warehouse barcode scanning & Zebra label printing application.
 
-**Current version:** `1.4.8` (`versionCode 10`)
+**Current version:** `1.4.9` (`versionCode 11`)
 
 ---
 

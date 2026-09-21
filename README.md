@@ -12,7 +12,7 @@
 <p align="center">
   <img alt="Android" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.4.8-087EA4">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.9-087EA4">
 </p>
 
 # English
@@ -126,7 +126,7 @@ app/src/main/java/com/kgconsol/
 
 ## Version
 
-Current version: **1.4.8** (`versionCode 10`).
+Current version: **1.4.9** (`versionCode 11`).
 
 Additional technical documentation is available in
 [KGConsol_README.md](KGConsol_README.md).
@@ -251,7 +251,7 @@ app/src/main/java/com/kgconsol/
 
 ## Версия
 
-Текущая версия: **1.4.8** (`versionCode 10`).
+Текущая версия: **1.4.9** (`versionCode 11`).
 
 Подробное техническое описание находится в
 [KGConsol_README.md](KGConsol_README.md).
