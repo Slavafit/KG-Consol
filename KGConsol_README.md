@@ -2,7 +2,7 @@
 
 > Warehouse barcode scanning & Zebra label printing application.
 
-**Current version:** `1.4.7` (`versionCode 9`)
+**Current version:** `1.4.8` (`versionCode 10`)
 
 ---
 
@@ -82,10 +82,10 @@ User taps "Complete Box & Print"
   → mark box completed in DB
   → print 2x ZPL labels (150×100mm) via TCP 9100
   → show ✓ animation (1.5s)
-  → stay on the completed box
+  → auto-create and open the next box
 ```
 
-A new box is created only when the user opens a batch that has no active box. This prevents empty boxes from appearing in exports.
+When the final report is opened, every box with zero orders is deleted and excluded from the exported report.
 
 ---
 
@@ -133,8 +133,8 @@ gradle :app:assembleDebug
 1. Open app → "New Batch" → enter number (KG auto-suggests next)
 2. Choose box mode: Auto (11111…) or Manual (5 digits)
 3. Scan any supported barcode, recognize a printed legacy number, or type it manually
-4. Tap "Complete Box & Print" → 2 labels are printed and the box remains completed
-5. Reopen the batch when you are ready to start its next box
+4. Tap "Complete Box & Print" → 2 labels are printed and the next box opens automatically
+5. Open the final report to remove the last empty box and export the completed batch
 6. Settings → enter printer IP, enable 1D barcode scanning, and run Test Print
 
 ---

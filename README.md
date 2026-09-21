@@ -12,7 +12,7 @@
 <p align="center">
   <img alt="Android" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.4.7-087EA4">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.8-087EA4">
 </p>
 
 # English
@@ -36,10 +36,10 @@
 2. Select an automatic or manual ID for its first box.
 3. Scan the order barcodes.
 4. Tap **Complete Box & Print** to complete the box and print its labels.
-5. Open the batch again when you are ready to start another box.
+5. The app automatically opens the next box so scanning can continue.
 
-The app does not create an empty box after printing, so empty boxes do not appear
-in exported batch reports.
+When the final batch report is opened, boxes with no orders are deleted from the
+database and excluded from the exported report.
 
 ## Barcode scanning
 
@@ -126,7 +126,7 @@ app/src/main/java/com/kgconsol/
 
 ## Version
 
-Current version: **1.4.7** (`versionCode 9`).
+Current version: **1.4.8** (`versionCode 10`).
 
 Additional technical documentation is available in
 [KGConsol_README.md](KGConsol_README.md).
@@ -158,10 +158,10 @@ Vyacheslav Fitlin — [@Slavafit](https://t.me/Slavafit)
 2. Выберите автоматический или ручной номер первой коробки.
 3. Отсканируйте штрихкоды заказов.
 4. Нажмите **Complete Box & Print** для завершения коробки и печати этикеток.
-5. Откройте партию снова, когда потребуется следующая коробка.
+5. Приложение автоматически откроет следующую коробку для продолжения работы.
 
-После печати приложение не создаёт пустую коробку автоматически, поэтому она
-не попадает в отчёт партии.
+При открытии итогового отчёта коробки без заказов удаляются из базы и не
+включаются в выгрузку.
 
 ## Сканирование
 
@@ -251,7 +251,7 @@ app/src/main/java/com/kgconsol/
 
 ## Версия
 
-Текущая версия: **1.4.7** (`versionCode 9`).
+Текущая версия: **1.4.8** (`versionCode 10`).
 
 Подробное техническое описание находится в
 [KGConsol_README.md](KGConsol_README.md).

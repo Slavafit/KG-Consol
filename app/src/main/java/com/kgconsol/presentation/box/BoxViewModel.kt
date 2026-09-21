@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kgconsol.data.preferences.AppPreferences
 import com.kgconsol.data.repository.KGRepository
+import com.kgconsol.data.repository.RepoResult
 import com.kgconsol.domain.model.Batch
 import com.kgconsol.domain.model.Box
 import com.kgconsol.domain.model.Order
@@ -86,8 +87,20 @@ class BoxViewModel @Inject constructor(
             is PrintResult.Success -> {
                 _ui.update { it.copy(isPrinting = false, showSuccess = true) }
                 delay(1500)
-                // A new box is created only when the user opens the batch again.
-                _ui.update { it.copy(showSuccess = false) }
+
+                // Continue warehouse work in the next automatically numbered box.
+                val nextNumber = repo.suggestNextBoxNumber(batch.id)
+                val boxResult = repo.createBox(batch.id, nextNumber, isAuto = true)
+                if (boxResult is RepoResult.Success) {
+                    _ui.update {
+                        it.copy(
+                            showSuccess = false,
+                            navigateToBox = batch.id to boxResult.data
+                        )
+                    }
+                } else {
+                    _ui.update { it.copy(showSuccess = false) }
+                }
             }
             is PrintResult.Error -> {
                 _ui.update { it.copy(isPrinting = false, error = result.message) }

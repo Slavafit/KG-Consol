@@ -217,7 +217,7 @@ fun SettingsScreen(
                 
                 Spacer(Modifier.height(8.dp))
 
-                Text("KG Consol v1.4.7", style = MaterialTheme.typography.bodyMedium)
+                Text("KG Consol v1.4.8", style = MaterialTheme.typography.bodyMedium)
                 Text(
                     "Barcode scanning and label printing for warehouse operations.",
                     style = MaterialTheme.typography.bodySmall,

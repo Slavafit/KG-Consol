@@ -36,10 +36,18 @@ class ReportsViewModel @Inject constructor(
             _ui.update { it.copy(batch = batch) }
 
             repo.getBoxesForBatch(batchId).collect { boxes ->
-                val boxReports = boxes.map { box ->
+                val reports = boxes.map { box ->
                     val orders = repo.getOrdersForBox(box.id).first()
                     BoxReport(box, orders)
                 }
+
+                // Opening the final batch report closes the workflow: remove empty
+                // boxes created for continued scanning and never export them.
+                reports.filter { it.orders.isEmpty() }.forEach { report ->
+                    repo.deleteBoxById(report.box.id)
+                }
+
+                val boxReports = reports.filter { it.orders.isNotEmpty() }
                 val text = buildReportText(batch, boxReports)
                 _ui.update { it.copy(boxReports = boxReports, reportText = text, isLoading = false) }
             }
