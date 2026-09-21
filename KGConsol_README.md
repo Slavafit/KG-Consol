@@ -2,6 +2,8 @@
 
 > Warehouse barcode scanning & Zebra label printing application.
 
+**Current version:** `1.4.7` (`versionCode 9`)
+
 ---
 
 ## Tech Stack
@@ -14,7 +16,7 @@
 | Database | Room 2.6 |
 | Settings | DataStore Preferences |
 | DI | Hilt |
-| Camera / OCR | CameraX + ML Kit Text Recognition |
+| Camera / barcode / OCR | CameraX + ML Kit Barcode Scanning + Text Recognition |
 | Printing | TCP Socket → ZPL (port 9100) |
 | Navigation | Navigation Compose |
 
@@ -30,7 +32,7 @@ app/src/main/java/com/kgconsol/
 │   │   ├── entity/     Entities.kt        — BatchEntity, BoxEntity, OrderEntity
 │   │   ├── dao/        Daos.kt            — BatchDao, BoxDao, OrderDao
 │   │   └──             AppDatabase.kt     — Room database
-│   ├── preferences/    AppPreferences.kt  — DataStore (IP, port, language, keep-on)
+│   ├── preferences/    AppPreferences.kt  — DataStore (printer, language, scanner, keep-on)
 │   └── repository/     KGRepository.kt    — Single source of truth
 │
 ├── domain/
@@ -45,8 +47,8 @@ app/src/main/java/com/kgconsol/
 │   ├── Navigation.kt                      — NavHost + route definitions
 │   ├── batch/          BatchListScreen.kt — Home: list of batches
 │   ├── box/            BoxScreen.kt       — Box detail: ID display + orders
-│   ├── scan/           ScanScreen.kt      — CameraX scanner + manual input
-│   ├── settings/       SettingsScreen.kt  — Printer IP, language, screen-on
+│   ├── scan/           ScanScreen.kt      — Barcode/OCR scanner + manual input
+│   ├── settings/       SettingsScreen.kt  — Printer, scanner, language, screen-on
 │   └── reports/        ReportsScreen.kt   — Batch/box report with share/copy
 │
 ├── MainActivity.kt
@@ -60,6 +62,7 @@ app/src/main/java/com/kgconsol/
 ### Партия (Batch)
 - Format: `KG` + number → `KG123`, `KG124` …
 - Auto-suggest: `MAX(number) + 1`
+- The start screen shows the live total order count and box count for every batch.
 
 ### Коробка (Box)
 | Mode | Values | Display |
@@ -68,8 +71,10 @@ app/src/main/java/com/kgconsol/
 | Manual | any 5 digits | `ID 12345` |
 
 ### Заказ (Order)
-- Format: `01-2345-6789` (regex `^\d{2}-\d{4}-\d{4}$`)
-- Unique constraint per box (Room UNIQUE index)
+- A decoded barcode is stored exactly as encoded, without extracting or reformatting its contents.
+- OCR and manual input use the legacy format `01-2345-6789` with an optional `/N` suffix.
+- Duplicate orders are rejected across the entire batch; Room also enforces uniqueness per box.
+- Supported by ML Kit: common 1D and 2D barcode formats, with OCR fallback for printed numbers.
 
 ### Complete Box flow
 ```
@@ -77,9 +82,10 @@ User taps "Complete Box & Print"
   → mark box completed in DB
   → print 2x ZPL labels (150×100mm) via TCP 9100
   → show ✓ animation (1.5s)
-  → auto-create next box with next auto-number
-  → navigate to new box screen
+  → stay on the completed box
 ```
+
+A new box is created only when the user opens a batch that has no active box. This prevents empty boxes from appearing in exports.
 
 ---
 
@@ -116,16 +122,20 @@ WAKE_LOCK         — keep screen on
 ```
 
 ### Build
+
+The repository currently has no Gradle wrapper scripts. Build from Android Studio, or use a locally installed compatible Gradle version:
+
 ```bash
-./gradlew assembleRelease
+gradle :app:assembleDebug
 ```
 
 ### First run
 1. Open app → "New Batch" → enter number (KG auto-suggests next)
 2. Choose box mode: Auto (11111…) or Manual (5 digits)
-3. Scan orders with camera or type manually
-4. Tap "Complete Box & Print" → 2 labels printed → next box opens automatically
-5. Settings → enter printer IP → Test Print
+3. Scan any supported barcode, recognize a printed legacy number, or type it manually
+4. Tap "Complete Box & Print" → 2 labels are printed and the box remains completed
+5. Reopen the batch when you are ready to start its next box
+6. Settings → enter printer IP, enable 1D barcode scanning, and run Test Print
 
 ---
 
@@ -133,10 +143,10 @@ WAKE_LOCK         — keep screen on
 
 | # | Screen | Key feature |
 |---|---|---|
-| 1 | **Batch List** | Auto-suggest next batch number |
+| 1 | **Batch List** | Live order/box totals and next batch suggestion |
 | 2 | **Box Screen** | Giant `ID XXXXX` display, Complete button |
-| 3 | **Scan Screen** | CameraX + ML Kit + torch button + manual input |
-| 4 | **Settings** | Printer IP/port, Test Print, Keep Screen, Language |
+| 3 | **Scan Screen** | Barcode decoding + OCR fallback + torch + manual input |
+| 4 | **Settings** | Printer, scanner mode, Test Print, Keep Screen, Language |
 | 5 | **Reports** | Per-batch/box expandable list, Copy + Share |
 
 ---
@@ -152,6 +162,12 @@ WAKE_LOCK         — keep screen on
 | Protocol | ZPL via raw TCP |
 
 Error handling: all socket exceptions caught, shown in AlertDialog with human-readable message.
+
+---
+
+## App Icon
+
+The launcher icon combines a warehouse box, barcode, scan frame, and `KG` monogram. Android resources include legacy, round, and adaptive variants for all supported screen densities. The high-resolution source is stored at `app/src/main/art/kg-consol-icon-source.png`.
 
 ---
 

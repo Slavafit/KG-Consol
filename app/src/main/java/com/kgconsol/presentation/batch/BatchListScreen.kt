@@ -124,12 +124,22 @@ private fun BatchCard(batch: Batch, onClick: () -> Unit) {
                 modifier = Modifier.size(56.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(batch.displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        batch.totalOrders.toString(),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(batch.displayName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "${batch.boxCount} boxes",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
                 Text(
                     SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(batch.createdAt)),
                     style = MaterialTheme.typography.bodySmall,

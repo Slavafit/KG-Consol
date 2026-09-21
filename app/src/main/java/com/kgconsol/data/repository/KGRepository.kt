@@ -4,6 +4,7 @@ import com.kgconsol.data.local.dao.BatchDao
 import com.kgconsol.data.local.dao.BoxDao
 import com.kgconsol.data.local.dao.OrderDao
 import com.kgconsol.data.local.entity.BatchEntity
+import com.kgconsol.data.local.entity.BatchSummary
 import com.kgconsol.data.local.entity.BoxEntity
 import com.kgconsol.data.local.entity.OrderEntity
 import com.kgconsol.domain.model.*
@@ -150,6 +151,14 @@ class KGRepository @Inject constructor(
 
     private fun BatchEntity.toDomain() = Batch(
         id = id, number = number, createdAt = createdAt
+    )
+
+    private fun BatchSummary.toDomain() = Batch(
+        id = id,
+        number = number,
+        createdAt = createdAt,
+        boxCount = boxCount,
+        totalOrders = totalOrders
     )
 
     private fun BoxEntity.toDomain() = Box(

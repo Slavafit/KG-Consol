@@ -17,6 +17,15 @@ data class BatchEntity(
     val displayName: String get() = "KG$number"
 }
 
+/** Batch row with live aggregate counters for the start screen. */
+data class BatchSummary(
+    val id: Long,
+    val number: Int,
+    val createdAt: Long,
+    val boxCount: Int,
+    val totalOrders: Int
+)
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Box  →  5-digit code (11111 / 22222 … for auto, any 5 digits for manual)
 // ─────────────────────────────────────────────────────────────────────────────

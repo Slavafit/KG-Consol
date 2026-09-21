@@ -2,6 +2,7 @@ package com.kgconsol.data.local.dao
 
 import androidx.room.*
 import com.kgconsol.data.local.entity.BatchEntity
+import com.kgconsol.data.local.entity.BatchSummary
 import com.kgconsol.data.local.entity.BoxEntity
 import com.kgconsol.data.local.entity.OrderEntity
 import kotlinx.coroutines.flow.Flow
@@ -12,8 +13,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BatchDao {
 
-    @Query("SELECT * FROM batches ORDER BY number DESC")
-    fun getAllBatches(): Flow<List<BatchEntity>>
+    @Query("""
+        SELECT b.id, b.number, b.createdAt,
+               COUNT(DISTINCT bx.id) AS boxCount,
+               COUNT(o.id) AS totalOrders
+        FROM batches b
+        LEFT JOIN boxes bx ON bx.batchId = b.id
+        LEFT JOIN orders o ON o.boxId = bx.id
+        GROUP BY b.id, b.number, b.createdAt
+        ORDER BY b.number DESC
+    """)
+    fun getAllBatches(): Flow<List<BatchSummary>>
 
     @Query("SELECT * FROM batches WHERE id = :id")
     suspend fun getBatchById(id: Long): BatchEntity?
