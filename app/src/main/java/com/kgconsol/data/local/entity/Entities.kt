@@ -27,7 +27,7 @@ data class BatchSummary(
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Box  →  5-digit code (11111 / 22222 … for auto, any 5 digits for manual)
+// Box → unique 4-digit code (e.g. 6376)
 // ─────────────────────────────────────────────────────────────────────────────
 @Entity(
     tableName = "boxes",
@@ -44,12 +44,12 @@ data class BatchSummary(
 data class BoxEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val batchId: Long,
-    val boxNumber: String,        // e.g. "11111", "22222", "12345"
-    val isAutoNumber: Boolean,    // true = repeating digits sequence
+    val boxNumber: String,        // e.g. "6376"
+    val isAutoNumber: Boolean,    // true = random unique 4-digit ID
     val isCompleted: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 ) {
-    /** Always displayed as "ID XXXXX" */
+    /** Displayed as "ID 6376" */
     val displayId: String get() = "ID $boxNumber"
 }
 

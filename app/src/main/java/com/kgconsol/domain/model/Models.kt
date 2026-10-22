@@ -38,19 +38,22 @@ data class Order(
 // ─────────────────────────────────────────────────────────────────────────────
 object BoxNumberHelper {
 
-    /** Auto sequence: 11111, 22222, 33333 … 99999 */
-    private val AUTO_SEQUENCE = (1..9).map { "$it$it$it$it$it" }
+    /** Generate a random four-digit ID that is unique within the batch. */
+    fun nextAutoNumber(existingNumbers: Set<String>): String {
+        repeat(100) {
+            val candidate = kotlin.random.Random.nextInt(1000, 10_000).toString()
+            if (candidate !in existingNumbers) return candidate
+        }
 
-    fun nextAutoNumber(current: String?): String {
-        if (current == null) return AUTO_SEQUENCE.first()
-        val idx = AUTO_SEQUENCE.indexOf(current)
-        return if (idx == -1 || idx == AUTO_SEQUENCE.lastIndex) AUTO_SEQUENCE.first()
-        else AUTO_SEQUENCE[idx + 1]
+        return (1000..9999)
+            .firstOrNull { it.toString() !in existingNumbers }
+            ?.toString()
+            ?: error("No free four-digit box numbers")
     }
 
-    /** Validate manual entry: exactly 5 digits */
+    /** Validate manual entry: exactly 4 digits */
     fun isValidManual(input: String): Boolean =
-        input.length == 5 && input.all { it.isDigit() }
+        input.length == 4 && input.all { it.isDigit() }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

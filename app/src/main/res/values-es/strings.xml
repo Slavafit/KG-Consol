@@ -18,9 +18,9 @@
     <string name="batch_no_batches">No hay partidas aún</string>
     <string name="batch_tap_to_create">Pulse + para crear su primera partida</string>
     <string name="batch_box_type">Tipo de caja</string>
-    <string name="batch_auto_box">Auto (11111, 22222…)</string>
-    <string name="batch_manual_box">Manual (5 dígitos)</string>
-    <string name="batch_box_number_label">Número de caja (5 dígitos)</string>
+    <string name="batch_auto_box">Auto (4 dígitos aleatorios)</string>
+    <string name="batch_manual_box">Manual (4 dígitos)</string>
+    <string name="batch_box_number_label">Número de caja (4 dígitos)</string>
 
     <string name="box_active">CAJA ACTIVA</string>
     <string name="box_manual">Manual</string>

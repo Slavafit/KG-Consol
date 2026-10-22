@@ -20,9 +20,9 @@
     <string name="batch_no_batches">No batches yet</string>
     <string name="batch_tap_to_create">Tap + to create your first batch</string>
     <string name="batch_box_type">Box type</string>
-    <string name="batch_auto_box">Auto (11111, 22222…)</string>
-    <string name="batch_manual_box">Manual (5 digits)</string>
-    <string name="batch_box_number_label">Box number (5 digits)</string>
+    <string name="batch_auto_box">Auto (random 4 digits)</string>
+    <string name="batch_manual_box">Manual (4 digits)</string>
+    <string name="batch_box_number_label">Box number (4 digits)</string>
 
     <!-- Box screen -->
     <string name="box_active">ACTIVE BOX</string>

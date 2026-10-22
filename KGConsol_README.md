@@ -2,7 +2,7 @@
 
 > Warehouse barcode scanning & Zebra label printing application.
 
-**Current version:** `1.4.9` (`versionCode 11`)
+**Current version:** `1.5.3` (`versionCode 15`)
 
 ---
 
@@ -67,8 +67,10 @@ app/src/main/java/com/kgconsol/
 ### Коробка (Box)
 | Mode | Values | Display |
 |---|---|---|
-| Auto | 11111, 22222 … 99999 (repeating digits) | `ID 11111` |
-| Manual | any 5 digits | `ID 12345` |
+| Auto | random unique 4-digit ID | `ID 6376` |
+| Manual | any 4 digits | `ID 1234` |
+
+Printed tracking number: `NBX + MMdd + HHmm + four-digit box ID`, for example `NBX102114266376`.
 
 ### Заказ (Order)
 - A decoded barcode is stored exactly as encoded, without extracting or reformatting its contents.
@@ -89,17 +91,17 @@ When the final report is opened, every box with zero orders is deleted and exclu
 
 ---
 
-## ZPL Label Layout (150mm × 100mm)
+## ZPL Label Layout (100mm × 150mm portrait)
 
 ```
 ┌──────────────────────────────────┐
+│  KG Consol                       │
+│  [NBX... Code 128 barcode]       │
+│  6376                            │
+│  Packed in Malaga: date/time     │
 │  KG123                           │
-│                                  │
-│  ID 11111       [QR code]        │
-│                                  │
-│  ───────────────                 │
-│  Orders: 42                      │
-│  28.05.2026 14:33                │
+│  Orders total: 42                │
+│  [QR]  KG Consol / version / dev │
 └──────────────────────────────────┘
 ```
 
@@ -131,7 +133,7 @@ gradle :app:assembleDebug
 
 ### First run
 1. Open app → "New Batch" → enter number (KG auto-suggests next)
-2. Choose box mode: Auto (11111…) or Manual (5 digits)
+2. Choose box mode: automatic random 4-digit ID or manual 4 digits
 3. Scan any supported barcode, recognize a printed legacy number, or type it manually
 4. Tap "Complete Box & Print" → 2 labels are printed and the next box opens automatically
 5. Open the final report to remove the last empty box and export the completed batch
@@ -144,7 +146,7 @@ gradle :app:assembleDebug
 | # | Screen | Key feature |
 |---|---|---|
 | 1 | **Batch List** | Live order/box totals and next batch suggestion |
-| 2 | **Box Screen** | Giant `ID XXXXX` display, Complete button |
+| 2 | **Box Screen** | Large four-digit box ID, Complete button |
 | 3 | **Scan Screen** | Barcode decoding + OCR fallback + torch + manual input |
 | 4 | **Settings** | Printer, scanner mode, Test Print, Keep Screen, Language |
 | 5 | **Reports** | Per-batch/box expandable list, Copy + Share |

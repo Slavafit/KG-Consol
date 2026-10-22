@@ -15,12 +15,18 @@ interface BatchDao {
 
     @Query("""
         SELECT b.id, b.number, b.createdAt,
-               COUNT(DISTINCT bx.id) AS boxCount,
-               COUNT(o.id) AS totalOrders
+               (
+                   SELECT COUNT(*)
+                   FROM boxes bx
+                   WHERE bx.batchId = b.id
+               ) AS boxCount,
+               (
+                   SELECT COUNT(*)
+                   FROM orders o
+                   INNER JOIN boxes ob ON ob.id = o.boxId
+                   WHERE ob.batchId = b.id
+               ) AS totalOrders
         FROM batches b
-        LEFT JOIN boxes bx ON bx.batchId = b.id
-        LEFT JOIN orders o ON o.boxId = bx.id
-        GROUP BY b.id, b.number, b.createdAt
         ORDER BY b.number DESC
     """)
     fun getAllBatches(): Flow<List<BatchSummary>>
@@ -60,6 +66,9 @@ interface BoxDao {
         ORDER BY createdAt DESC LIMIT 1
     """)
     suspend fun getLastAutoBox(batchId: Long): BoxEntity?
+
+    @Query("SELECT boxNumber FROM boxes WHERE batchId = :batchId")
+    suspend fun getBoxNumbersForBatch(batchId: Long): List<String>
 
     /** Last open (non-completed) box for a batch */
     @Query("""

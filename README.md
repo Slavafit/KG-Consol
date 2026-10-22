@@ -12,7 +12,7 @@
 <p align="center">
   <img alt="Android" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.4.9-087EA4">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.5.3-087EA4">
 </p>
 
 # English
@@ -42,6 +42,9 @@ When the final batch report is opened, boxes with no orders are deleted from the
 database and excluded from the exported report.
 
 ## Barcode scanning
+
+Box tracking labels use the format `NBX + MMdd + HHmm + four random digits`.
+The last four digits are also shown as the large box ID on the label.
 
 The complete value returned by the barcode scanner is stored as the order number.
 For example:
@@ -126,7 +129,7 @@ app/src/main/java/com/kgconsol/
 
 ## Version
 
-Current version: **1.4.9** (`versionCode 11`).
+Current version: **1.5.3** (`versionCode 15`).
 
 Additional technical documentation is available in
 [KGConsol_README.md](KGConsol_README.md).
@@ -164,6 +167,9 @@ Vyacheslav Fitlin — [@Slavafit](https://t.me/Slavafit)
 включаются в выгрузку.
 
 ## Сканирование
+
+Трек-номер коробки формируется как `NBX + MMdd + HHmm + 4 случайные цифры`.
+Последние четыре цифры также печатаются крупно как ID коробки.
 
 Для настоящего штрихкода сохраняется вся строка, возвращённая сканером.
 Например, значение:
@@ -251,7 +257,7 @@ app/src/main/java/com/kgconsol/
 
 ## Версия
 
-Текущая версия: **1.4.9** (`versionCode 11`).
+Текущая версия: **1.5.3** (`versionCode 15`).
 
 Подробное техническое описание находится в
 [KGConsol_README.md](KGConsol_README.md).

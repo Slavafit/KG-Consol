@@ -1,5 +1,6 @@
 package com.kgconsol.util
 
+import com.kgconsol.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.PrintWriter
@@ -22,35 +23,56 @@ class ZebraPrinter @Inject constructor() {
         private const val CONNECT_TIMEOUT_MS = 5000
         private const val READ_TIMEOUT_MS = 5000
 
-        // Label: 150mm × 100mm @ 203 dpi = 1181 × 787 dots
-        // Using 8 dots/mm → 150*8=1200 wide, 100*8=800 tall
-        private fun buildZpl(
+        // Label: 100mm × 150mm @ 203 dpi, portrait orientation (800 × 1200 dots).
+        internal fun buildZpl(
             batchName: String,
-            boxDisplay: String,
+            boxNumber: String,
             orderCount: Int,
-            date: String
+            date: String,
+            packageCode: String
         ): String = """
 ^XA
 ^CI28
 ^MMT
-^PW1200
-^LL800
+^PW800
+^LL1200
 
-^FO60,100^A0N,100,100^FD$batchName^FS
+^FO25,35^A0N,58,58^FDOnza España^FS
 
-^FO60,210^A0N,120,120^FD$boxDisplay^FS
+^FO25,110^BY3,3,145^BCN,145,Y,N,N^FD$packageCode^FS
 
-^FO60,360^GB1080,4,4^FS
+^FO25,330^A0N,120,120^FD$boxNumber^FS
 
-^FO60,385^A0N,45,45^FDOrders: $orderCount^FS
-^FO60,445^A0N,40,40^FD$date^FS
+^FO25,465^GB750,3,3^FS
+^FO25,482^A0N,32,32^FDPacked in Malaga: $date^FS
+^FO25,530^GB750,3,3^FS
 
-^FO60,500^GB1080,4,4^FS
+^FO25,555^A0N,115,115^FD$batchName^FS
 
-^FO60,530^BQN,2,7^FDMA,$batchName $boxDisplay^FS
+^FO25,710^A0N,50,50^FDOrders total: $orderCount^FS
+
+^FO25,820^BQN,2,10^FDMA,$packageCode^FS
+
+^FO390,1030^A0N,32,32^FDKG Consol^FS
+^FO390,1072^A0N,26,26^FDVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})^FS
+^FO390,1110^A0N,26,26^FDDev: Viacheslav Fitlin^FS
 
 ^XZ
 """.trimIndent()
+
+        internal fun buildPackageCode(
+            boxNumber: String,
+            now: Date,
+            timeZone: TimeZone = TimeZone.getDefault()
+        ): String {
+            require(boxNumber.matches(Regex("""\d{4}"""))) {
+                "Box number must contain exactly four digits"
+            }
+            val formatter = SimpleDateFormat("MMddHHmm", Locale.US).apply {
+                this.timeZone = timeZone
+            }
+            return "NBX${formatter.format(now)}$boxNumber"
+        }
     }
 
     /** Print 2 copies of the box label via TCP/IP */
@@ -58,13 +80,14 @@ class ZebraPrinter @Inject constructor() {
         ip: String,
         port: Int,
         batchName: String,
-        boxDisplay: String,
+        boxNumber: String,
         orderCount: Int,
         copies: Int = 2
     ): PrintResult = withContext(Dispatchers.IO) {
-        val date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-            .format(Date())
-        val zpl = buildZpl(batchName, boxDisplay, orderCount, date)
+        val now = Date()
+        val date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(now)
+        val packageCode = buildPackageCode(boxNumber, now)
+        val zpl = buildZpl(batchName, boxNumber, orderCount, date, packageCode)
         sendZpl(ip, port, zpl, copies)
     }
 

@@ -179,19 +179,19 @@ private fun CreateBatchDialog(
                 Text("Box type", style = MaterialTheme.typography.labelLarge)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = autoBox, onClick = { autoBox = true })
-                    Text("Auto (11111, 22222…)", Modifier.clickable { autoBox = true })
+                    Text("Auto (random 4 digits)", Modifier.clickable { autoBox = true })
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = !autoBox, onClick = { autoBox = false })
-                    Text("Manual (5 digits)", Modifier.clickable { autoBox = false })
+                    Text("Manual (4 digits)", Modifier.clickable { autoBox = false })
                 }
                 if (!autoBox) {
                     OutlinedTextField(
                         value = manualBoxNumber,
-                        onValueChange = { if (it.length <= 5 && it.all(Char::isDigit)) manualBoxNumber = it },
-                        label = { Text("Box number (5 digits)") },
+                        onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) manualBoxNumber = it },
+                        label = { Text("Box number (4 digits)") },
                         singleLine = true,
-                        isError = manualBoxNumber.isNotEmpty() && manualBoxNumber.length != 5,
+                        isError = manualBoxNumber.isNotEmpty() && manualBoxNumber.length != 4,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -200,7 +200,7 @@ private fun CreateBatchDialog(
         confirmButton = {
             Button(
                 onClick = { number?.let { onCreate(it, autoBox, manualBoxNumber) } },
-                enabled = number != null && (autoBox || manualBoxNumber.length == 5)
+                enabled = number != null && (autoBox || manualBoxNumber.length == 4)
             ) { Text("Create") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }

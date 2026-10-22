@@ -364,15 +364,15 @@ private fun EditBoxDialog(currentNumber: String, onDismiss: () -> Unit, onSave: 
         text = {
             OutlinedTextField(
                 value = input,
-                onValueChange = { if (it.length <= 5 && it.all(Char::isDigit)) input = it },
-                label = { Text("Box number (5 digits)") },
+                onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) input = it },
+                label = { Text("Box number (4 digits)") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
         },
         confirmButton = {
-            Button(onClick = { onSave(input) }, enabled = input.length == 5) { Text("Save") }
+            Button(onClick = { onSave(input) }, enabled = input.length == 4) { Text("Save") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )

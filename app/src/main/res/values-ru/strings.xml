@@ -20,9 +20,9 @@
     <string name="batch_no_batches">Партий пока нет</string>
     <string name="batch_tap_to_create">Нажмите + для создания первой партии</string>
     <string name="batch_box_type">Тип коробки</string>
-    <string name="batch_auto_box">Авто (11111, 22222…)</string>
-    <string name="batch_manual_box">Ручной (5 цифр)</string>
-    <string name="batch_box_number_label">Номер коробки (5 цифр)</string>
+    <string name="batch_auto_box">Авто (случайные 4 цифры)</string>
+    <string name="batch_manual_box">Ручной (4 цифры)</string>
+    <string name="batch_box_number_label">Номер коробки (4 цифры)</string>
 
     <!-- Box screen -->
     <string name="box_active">ТЕКУЩАЯ КОРОБКА</string>

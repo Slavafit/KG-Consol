@@ -56,8 +56,8 @@ class KGRepository @Inject constructor(
 
     /** Suggest next auto-number for a batch */
     suspend fun suggestNextBoxNumber(batchId: Long): String {
-        val last = boxDao.getLastAutoBox(batchId)
-        return BoxNumberHelper.nextAutoNumber(last?.boxNumber)
+        val existingNumbers = boxDao.getBoxNumbersForBatch(batchId).toSet()
+        return BoxNumberHelper.nextAutoNumber(existingNumbers)
     }
 
     suspend fun createBox(
@@ -66,7 +66,7 @@ class KGRepository @Inject constructor(
         isAuto: Boolean
     ): RepoResult<Long> {
         if (!isAuto && !BoxNumberHelper.isValidManual(boxNumber)) {
-            return RepoResult.Error("Box number must be exactly 5 digits")
+            return RepoResult.Error("Box number must be exactly 4 digits")
         }
         return try {
             val id = boxDao.insertBox(
@@ -118,17 +118,15 @@ class KGRepository @Inject constructor(
         if (validateFormat && !OrderValidator.isValid(normalized)) {
             return RepoResult.Error("Invalid order format. Expected: 01-2345-6789")
         }
-        // Проверка дубля в коробке
-        if (orderDao.orderExistsInBox(boxId, normalized)) {
-            return RepoResult.Error("Order $normalized already exists in this box")
-        }
-        // Проверка дубля в партии
+        // Проверяем номер по всей партии, включая текущую коробку, чтобы всегда
+        // сообщать пользователю точный ID коробки с уже добавленным заказом.
         val box = boxDao.getBoxById(boxId)
-        if (box != null) {
-            val existingBoxNumber = orderDao.getBoxNumberByOrder(box.batchId, normalized)
-            if (existingBoxNumber != null) {
-                return RepoResult.Error("Order $normalized already exists in box ID $existingBoxNumber")
-            }
+            ?: return RepoResult.Error("Box not found")
+        val existingBoxNumber = orderDao.getBoxNumberByOrder(box.batchId, normalized)
+        if (existingBoxNumber != null) {
+            return RepoResult.Error(
+                "Order $normalized already exists in box ID $existingBoxNumber"
+            )
         }
         return try {
             val id = orderDao.insertOrder(

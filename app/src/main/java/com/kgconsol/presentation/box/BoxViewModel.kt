@@ -78,7 +78,7 @@ class BoxViewModel @Inject constructor(
             ip = settings.printerIp,
             port = settings.printerPort,
             batchName = batch.displayName,
-            boxDisplay = box.displayId,
+            boxNumber = box.boxNumber,
             orderCount = orderCount,
             copies = 2
         )
@@ -120,7 +120,7 @@ class BoxViewModel @Inject constructor(
                 ip = settings.printerIp,
                 port = settings.printerPort,
                 batchName = batch.displayName,
-                boxDisplay = box.displayId,
+                boxNumber = box.boxNumber,
                 orderCount = state.orders.size,
                 copies = 2
             )
